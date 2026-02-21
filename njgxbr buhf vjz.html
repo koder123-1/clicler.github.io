@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кликер · Взрывная энергия</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1a2634 0%, #0e1219 100%);
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .game-container {
+            background: rgba(22, 30, 40, 0.8);
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 32px 40px;
+            box-shadow: 0 25px 50px -8px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 215, 0, 0.15);
+        }
+        .clicker-card {
+            text-align: center;
+            width: 380px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            background: linear-gradient(135deg, #f9e381, #ffb347);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 10px rgba(255, 200, 50, 0.3);
+        }
+        .subtitle {
+            color: #9aaec9;
+            font-weight: 400;
+            font-size: 1rem;
+            margin-top: -5px;
+            margin-bottom: 28px;
+            border-bottom: 1px dashed #2e3a48;
+            padding-bottom: 18px;
+        }
+        .energy-panel {
+            background: #0f151e;
+            border-radius: 110px;
+            padding: 18px 20px;
+            margin-bottom: 28px;
+            border: 1px solid #3d4d5e;
+            box-shadow: inset 0 3px 8px #030405, 0 10px 20px -10px black;
+        }
+        .score {
+            font-size: 4.2rem;
+            font-weight: 800;
+            line-height: 1;
+            color: #ffd966;
+            text-shadow: 0 0 20px #f9a826, 0 5px 0 #7f4f1a;
+            letter-spacing: 2px;
+        }
+        .score-label {
+            color: #a5c0e0;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            margin-top: 8px;
+        }
+        .click-area {
+            margin: 20px 0 18px;
+            position: relative;
+        }
+        .click-btn {
+            background: radial-gradient(circle at 30% 30%, #f3c96b, #c8811e);
+            border: none;
+            width: 220px;
+            height: 220px;
+            border-radius: 999px;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 4px 0 #9b5e1a, 0 7px 15px black;
+            cursor: pointer;
+            box-shadow: 0 20px 30px -5px #00000080, 0 0 0 10px #2c3a47 inset, 0 0 0 12px #f5d742 inset;
+            transition: all 0.06s ease-out;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            line-height: 1.2;
+            animation: float 3s infinite alternate;
+        }
+        .click-btn:active {
+            transform: scale(0.92);
+            box-shadow: 0 8px 15px -2px black, 0 0 0 6px #f5c542 inset, 0 0 0 10px #f5d742 inset;
+            background: radial-gradient(circle at 30% 30%, #fddf85, #d18f28);
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-8px); }
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background: #18212b;
+            padding: 16px 18px;
+            border-radius: 60px;
+            margin: 20px 0 10px;
+            border: 1px solid #3d4b5a;
+            font-weight: 600;
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-value {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #f5d371;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: #7b94af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .upgrade-section {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        .upgrade-btn {
+            flex: 1;
+            background: #222f3b;
+            border: 1px solid #4f637b;
+            color: #e9f2fa;
+            padding: 14px 0;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #0b1116, 0 5px 15px black;
+            transition: 0.06s linear;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.3;
+        }
+        .upgrade-btn small {
+            font-size: 0.75rem;
+            color: #ffb96b;
+            font-weight: 400;
+        }
+        .upgrade-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #0b1116, 0 5px 12px black;
+        }
+        .upgrade-btn:disabled {
+            opacity: 0.3;
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #0b1116;
+            pointer-events: none;
+            filter: grayscale(60%);
+        }
+        .reset-btn {
+            background: #2c2f3b;
+            border: none;
+            color: #bfcde0;
+            font-size: 1.1rem;
+            padding: 8px 20px;
+            border-radius: 40px;
+            margin-top: 16px;
+            cursor: pointer;
+            border: 1px solid #4a5464;
+            transition: 0.1s;
+            font-weight: 500;
+            width: 100%;
+            box-shadow: 0 5px 0 #12161c;
+        }
+        .reset-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #12161c;
+        }
+        .plus-one {
+            position: fixed;
+            font-weight: 800;
+            font-size: 2rem;
+            color: #ffd966;
+            text-shadow: 0 0 15px orange, 0 3px 0 #a35800;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0;
+            animation: flyUp 0.9s forwards;
+        }
+        @keyframes flyUp {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.7); }
+            100% { opacity: 0; transform: translate(-50%, -130px) scale(1.5); }
+        }
+        footer {
+            color: #556c83;
+            margin-top: 20px;
+            font-size: 0.7rem;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="clicker-card">
+        <h1>⚡КЛИКЕР⚡</h1>
+        <div class="subtitle">жми — качай энергию</div>
+
+        <!-- Основной счёт -->
+        <div class="energy-panel">
+            <div class="score" id="scoreDisplay">0</div>
+            <div class="score-label">энерго единиц</div>
+        </div>
+
+        <!-- Кнопка клика -->
+        <div class="click-area">
+            <button class="click-btn" id="clickButton">💥<br>КЛИК</button>
+        </div>
+
+        <!-- Статистика -->
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-value" id="energyPerClickDisplay">1</span>
+                <span class="stat-label">за клик</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="levelDisplay">1</span>
+                <span class="stat-label">уровень</span>
+            </div>
+        </div>
+
+        <!-- Улучшения (два варианта) -->
+        <div class="upgrade-section">
+            <button class="upgrade-btn" id="upgradePowerBtn">
+                ⚡ +1 <small>цена 10</small>
+            </button>
+            <button class="upgrade-btn" id="upgradeUltraBtn">
+                💫 x2 <small>цена 50</small>
+            </button>
+        </div>
+
+        <!-- Сброс прогресса -->
+        <button class="reset-btn" id="resetBtn">⟲ обнулить</button>
+        <footer>нажми 1000 раз — стань легендой</footer>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ----- СОСТОЯНИЕ ИГРЫ -----
+        let energy = 0;                // текущее количество очков
+        let energyPerClick = 1;         // базовая мощность клика
+        let level = 1;                  // просто косметический уровень (растёт от общего числа кликов)
+
+        // цены улучшений
+        const BASE_UPGRADE_COST = 10;    // цена за +1 к силе
+        const MULTI_UPGRADE_COST = 50;   // цена за удвоение силы
+
+        // DOM элементы
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const energyPerClickDisplay = document.getElementById('energyPerClickDisplay');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const clickButton = document.getElementById('clickButton');
+        const upgradePowerBtn = document.getElementById('upgradePowerBtn');
+        const upgradeUltraBtn = document.getElementById('upgradeUltraBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Вспомогательная функция форматирования чисел (без плавающей точки, если целое)
+        function formatNumber(num) {
+            return num % 1 === 0 ? num.toString() : num.toFixed(2);
+        }
+
+        // Обновить весь интерфейс (счёт, мощность, уровень, кнопки)
+        function refreshUI() {
+            scoreDisplay.textContent = formatNumber(energy);
+            energyPerClickDisplay.textContent = formatNumber(energyPerClick);
+            levelDisplay.textContent = level;
+
+            // Активируем/деактивируем кнопки улучшений (в зависимости от хватает ли энергии)
+            upgradePowerBtn.disabled = (energy < BASE_UPGRADE_COST);
+            upgradeUltraBtn.disabled = (energy < MULTI_UPGRADE_COST);
+        }
+
+        // Эффект парящего "+n" (появление возле кнопки)
+        function spawnFloatingText(value, x, y) {
+            const floatingEl = document.createElement('div');
+            floatingEl.className = 'plus-one';
+            // Округляем до 2 знаков для показа
+            const displayVal = (value % 1 === 0) ? value : value.toFixed(1);
+            floatingEl.textContent = `+${displayVal}`;
+            floatingEl.style.left = x + 'px';
+            floatingEl.style.top = y + 'px';
+            document.body.appendChild(floatingEl);
+
+            // Удаляем элемент после анимации
+            setTimeout(() => {
+                if (floatingEl.parentNode) floatingEl.remove();
+            }, 800);
+        }
+
+        // Обработчик клика по главной кнопке
+        function handleClick(event) {
+            // прибавляем энергию
+            energy += energyPerClick;
+
+            // увеличиваем уровень (каждые 10 кликов = +1 уровень, но для интереса можно и так)
+            // уровень = 1 + floor(сумма_кликов / 7) — сделаем мягко
+            // для этого нужно знать общее накопленное, но уровень будет расти от количества кликов.
+            // Проще всего считать уровень через отдельный счётчик кликов.
+            // Исправим: при каждом клике увеличиваем некий totalClicks
+            if (!window._totalClicks) window._totalClicks = 0;
+            window._totalClicks += 1;
+            // уровень = 1 + floor(totalClicks / 10)
+            level = 1 + Math.floor(window._totalClicks / 10);
+
+            // Визуальный фидбек: позиция для всплывашки
+            const rect = clickButton.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2 - 20;  // чуть выше кнопки
+            spawnFloatingText(energyPerClick, centerX, centerY);
+
+            // обновляем интерфейс
+            refreshUI();
+        }
+
+        // Улучшение +1 к мощности (стоимость 10)
+        function upgradePower() {
+            if (energy < BASE_UPGRADE_COST) return;
+
+            energy -= BASE_UPGRADE_COST;
+            energyPerClick += 1;
+
+            refreshUI();
+
+            // небольшая вспышка (микроэффект)
+            showMiniMessage('⚡ сила +1');
+        }
+
+        // Супер-улучшение: x2 мощность (стоимость 50)
+        function upgradeMultiplier() {
+            if (energy < MULTI_UPGRADE_COST) return;
+
+            energy -= MULTI_UPGRADE_COST;
+            energyPerClick *= 2;
+
+            refreshUI();
+            showMiniMessage('💫 УДВОЕНИЕ!');
+        }
+
+        // крошечное уведомление (вместо alert)
+        function showMiniMessage(text) {
+            // можно просто изменить текст подсказки или подсветить что-то
+            // сделаем просто вспышку на кнопке улучшения
+            upgradePowerBtn.style.transition = '0.1s';
+            upgradePowerBtn.style.backgroundColor = '#4f7a4f';
+            setTimeout(() => {
+                upgradePowerBtn.style.backgroundColor = '';
+            }, 120);
+        }
+
+        // Сброс всей игры
+        function resetGame() {
+            if (confirm('Точно обнулить все достижения?')) {
+                energy = 0;
+                energyPerClick = 1;
+                level = 1;
+                window._totalClicks = 0;   // сбрасываем счётчик кликов
+                refreshUI();
+                // дополнительно "взрыв" кнопки
+                clickButton.style.transform = 'scale(0.9)';
+                setTimeout(() => clickButton.style.transform = '', 150);
+            }
+        }
+
+        // ----- ПОДПИСКА НА СОБЫТИЯ -----
+        clickButton.addEventListener('click', function(e) {
+            handleClick(e);
+        });
+
+        upgradePowerBtn.addEventListener('click', function() {
+            upgradePower();
+        });
+
+        upgradeUltraBtn.addEventListener('click', function() {
+            upgradeMultiplier();
+        });
+
+        resetBtn.addEventListener('click', function() {
+            resetGame();
+        });
+
+        // инициализация: обнулим totalClicks и интерфейс
+        window._totalClicks = 0;
+        refreshUI();
+
+        // (Опционально) эффект ряби при наведении
+        clickButton.addEventListener('mousedown', function() {
+            this.style.transform = 'scale(0.92)';
+        });
+        clickButton.addEventListener('mouseup', function() {
+            this.style.transform = '';
+        });
+        clickButton.addEventListener('mouseleave', function() {
+            this.style.transform = '';
+        });
+
+        // Дополнительно: горячая клавиша "пробел" для клика
+        window.addEventListener('keydown', function(e) {
+            if (e.code === 'Space' && !e.repeat) {
+                e.preventDefault();  // предотвращаем скролл страницы
+                // программно вызываем клик с эмуляцией координат (по центру кнопки)
+                const rect = clickButton.getBoundingClientRect();
+                const fakeEvent = {
+                    clientX: rect.left + rect.width / 2,
+                    clientY: rect.top + rect.height / 2
+                };
+                handleClick(fakeEvent);
+                // добавим тактильный эффект на кнопку
+                clickButton.style.transform = 'scale(0.92)';
+                setTimeout(() => clickButton.style.transform = '', 100);
+            }
+        });
+    })();
+</script>
+</body>
+</html>
